@@ -7,40 +7,49 @@ var k12map = (function() {
 		var initialized = false;
 		var initialWidth;
 		var initialize = function() {
-			var pathString, state, coords;
-			m.paper = Raphael(m.mapDivID,m.width,m.height);
-			for (state in map_paths) {
-				pathString = map_paths[state].path;
+			
+			function makeState(pathString) {
 				m.stateObjs[state] = m.paper.path(pathString);
 				m.stateObjs[state].transform(m.transformString);
 				m.stateObjs[state].attr({
-					cursor: "pointer"
+					cursor: "pointer",
+					fill: "#999",
+					"stroke-width":0.5
 				});
-				m.stateObjs[state].attr({
-					fill: "#999"
-				})
-				
-				
-				coords = m.utilities.pathCenter(m.stateObjs[state]);
-				if (text_configs.hide[state]) {} else {
-					if (text_configs.offset[state]) {
-						coords[0] += text_configs.offset[state][0];
-						coords[1] += text_configs.offset[state][1];
-					}
-				
-					m.stateLabelObjs[state] = m.paper.text(coords[0],coords[1],state);
-					m.stateLabelObjs[state].attr({
-						"font-size":18,
-						"font-family":$("#" + m.mapDivID).css("font-family")
-					});
-				}
-				
 				//store raphael IDs of each state
 				m.stateIDs[state] = m.stateObjs[state].node.raphaelid;
-	
 				//and for reverse lookup
 				m.stateCodes[m.stateObjs[state].node.raphaelid] = state;
+			};
+			
+			function makeText(coords) {
+				if (text_configs.offset[state]) {
+					coords[0] += text_configs.offset[state][0];
+					coords[1] += text_configs.offset[state][1];
+				}
+			
+				m.stateLabelObjs[state] = m.paper.text(coords[0],coords[1],state);
+				m.stateLabelObjs[state].attr({
+					"font-size":18,
+					"font-family":$("#" + m.mapDivID).css("font-family")
+				});
+				//store raphael IDs of each label
+				m.stateTextIDs[state] = m.stateLabelObjs[state].node.raphaelid;
+				
 			}
+			
+			m.paper = Raphael(m.mapDivID,m.width,m.height);
+			
+			for (var state in map_paths) {
+				makeState(map_paths[state].path);
+				if (text_configs.hide[state]) {} else {
+					makeText(m.utilities.pathCenter(m.stateObjs[state]));
+				}
+			}
+			
+			
+			m.calcStateColors(0);
+			
 			initialized = true;
 		}
 		
@@ -79,11 +88,19 @@ var k12map = (function() {
 				initialize();
 			},
 			
+			applyColors: function() {
+				for (var state in m.stateObjs) {
+					
+				}
+			},
+			
 			stateObjs: {},
 			
 			stateLabelObjs: {},
 			
 			stateIDs: {},
+			
+			stateTextIDs: {},
 			
 			stateCodes: {},
 			
@@ -101,11 +118,6 @@ var k12map = (function() {
 	
 	return m;
 }());
-
-
-console.log(k12map);
-
-
 
 $(document).ready(function() {
 	k12_floader.documentReady = true;
