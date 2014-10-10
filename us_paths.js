@@ -162,9 +162,30 @@ var text_configs = {
 	offset: {
 		"CA" : [-10,0],
 		"ID" : [0,10],
-		"VA" : [10,0]
+		"VA" : [10,0],
+		"ME" : [-3,-2],
+		"NY" : [3,0],
+		"WV" : [-3,2],
+		"KY" : [5,0],
+		"MI" : [15,15],
+		"DC" : [0,25],
+		"LA" : [-10,0],
+		"FL" : [30,0],
+		"OK" : [10,0],
+		"MN" : [-10,0],
+		"HI" : [-10,10],
+		"AK" : [5,-15],
+		"ID" : [0,20]
 	},
 	hide: {
-		"CT" : true
+		"CT" : true,
+		"VT" : true,
+		"NH" : true,
+		"DC_actual" : true,
+		"MD" : true,
+		"MA" : true,
+		"NJ" : true,
+		"DE" : true,
+		"RI" : true
 	}
 };
