@@ -1,9 +1,12 @@
 // JavaScript Document
 
 var k12map = (function() {
+	
 	var m = (function() {
+		
 		var initialized = false;
 		var initialWidth;
+		
 		return {
 			
 			mapDivID: "map",
@@ -73,19 +76,18 @@ var k12map = (function() {
 					
 					if (state != "DC_actual") {
 						coords = m.utilities.pathCenter(m.stateObjs[state]);
-						if (text_offsets.relative[state]) {
-							coords[0] += text_offsets.relative[state][0];
-							coords[1] += text_offsets.relative[state][1];
+						if (text_configs.hide[state]) {} else {
+							if (text_configs.offset[state]) {
+								coords[0] += text_configs.offset[state][0];
+								coords[1] += text_configs.offset[state][1];
+							}
+						
+							m.stateLabelObjs[state] = m.paper.text(coords[0],coords[1],state);
+							m.stateLabelObjs[state].attr({
+								"font-size":18,
+								"font-family":$("#" + m.mapDivID).css("font-family")
+							});
 						}
-						if (text_offsets.absolute[state]) {
-							coords[0] = text_offsets.absolute[state][0];
-							coords[1] = text_offsets.absolute[state][1];
-						}
-						m.stateLabelObjs[state] = m.paper.text(coords[0],coords[1],state);
-						m.stateLabelObjs[state].attr({
-							"font-size":18,
-							"font-family":$("#" + m.mapDivID).css("font-family")
-						});
 					}
 					//store raphael IDs of each state
 					m.stateIDs[state] = m.stateObjs[state].node.raphaelid;

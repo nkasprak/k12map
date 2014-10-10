@@ -157,12 +157,14 @@ var map_paths = {
 	}
 };
 
-var text_offsets = {
-	relative: {
+
+var text_configs = {
+	offset: {
 		"CA" : [-10,0],
-		"ID" : [0,10]
+		"ID" : [0,10],
+		"VA" : [10,0]
 	},
-	absolute: {
-		"ME" : [530,50]
+	hide: {
+		"CT" : true
 	}
 };
