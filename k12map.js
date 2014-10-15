@@ -16,11 +16,39 @@ var k12map = (function() {
 					fill: "#999",
 					"stroke-width":0.5
 				});
+				
+				
+				m.stateObjs[state].hover(function(e) {
+					if (m.stateCodes) var state = m.stateCodes[this.id];
+					stateEnter(state);
+				},function(e) {
+					stateLeave();
+				});
+				
 				//store raphael IDs of each state
 				m.stateIDs[state] = m.stateObjs[state].node.raphaelid;
 				//and for reverse lookup
 				m.stateCodes[m.stateObjs[state].node.raphaelid] = state;
 			};
+			
+			function stateEnter(state) {
+				if (initialized) {
+					clearTimeout(m.fadeTimer);
+					if (state != m.currentStatePopup) {
+						m.currentStatePopup = state;
+						m.popupTimer = setTimeout(function() {
+							m.popupState(m.currentStatePopup);
+						},50);
+					}
+				}
+			};
+			
+			function stateLeave() {
+				if (initialized) {
+					clearTimeout(m.fadeTimer);
+					m.fadeTimer = setTimeout(m.fadeoutPopups,100);
+				}
+			}
 			
 			function makeText(coords) {
 				if (text_configs.offset[state]) {
@@ -33,6 +61,14 @@ var k12map = (function() {
 					"font-size":18,
 					"font-family":$("#" + m.mapDivID).css("font-family")
 				});
+				
+				m.stateLabelObjs[state].hover(function(e) {
+					var state = $(this[0]).children("tspan").html();
+					stateEnter(state);
+				},function(e) {
+					stateLeave();
+				});
+				
 				//store raphael IDs of each label
 				m.stateTextIDs[state] = m.stateLabelObjs[state].node.raphaelid;
 				
@@ -47,9 +83,28 @@ var k12map = (function() {
 				}
 			}
 			
-			
 			m.calcStateColors(0);
+			m.applyStateColors();
+		
+			$("#map").on("mouseleave","div.popup",function() {
+				stateLeave();
+			});
 			
+			$("#map").on("mouseenter","div.popup",function() {
+				clearTimeout(m.fadeTimer);
+			});
+			
+			$("#map").on("mousemove",function(e) {
+				
+				if (initialized) {
+					if ($(e.target).prop("tagName") == "path") {
+						m.mousePos.x = e.offsetX;
+						m.mousePos.y = e.offsetY;
+					}
+				}
+				
+			});
+		
 			initialized = true;
 		}
 		
@@ -74,6 +129,8 @@ var k12map = (function() {
 				if (initialized == true) m.applyNewTransform();
 			},
 			
+			mousePos: {x: 0, y:0},
+			
 			applyNewTransform: function() {
 				var state;
 				for (state in map_paths) {
@@ -88,10 +145,57 @@ var k12map = (function() {
 				initialize();
 			},
 			
-			applyColors: function() {
-				for (var state in m.stateObjs) {
-					
+			setFadeoutTimer: function() {
+				clearTimeout(m.fadeTimer);
+				m.fadeTimer = setTimeout(function() {
+					m.fadeoutPopups();
+				},3000);
+			},
+			
+			fadeoutPopups : function() {
+				$("#map .popup").fadeOut(200,null,function() {
+					$(this).remove();	
+				});
+				m.currentStatePopup = "none";
+			},
+						
+			currentStatePopup : "none",
+			
+			popupState: function(state) {
+				if (state != "none") {
+					var coords = [m.mousePos.x,m.mousePos.y];
+					var popup = $("<div class=\"popup\" style=\"display:none\">");
+					m.fadeoutPopups();
+					popup.html(m.popupTemplate(state));
+					if (coords[1] < m.height/2) {
+						popup.css("top",coords[1]);
+					} else {
+						popup.css("bottom",m.height - coords[1]);
+					}
+					if (coords[0] < m.width/2) {
+						popup.css("left",coords[0]);
+					} else {
+						popup.css("right",m.width - coords[0]);
+					}
+					$("#map").append(popup);
+					popup.fadeIn(200);
+					m.setFadeoutTimer();
 				}
+			},
+			
+			popupTemplate: function(state) {
+				if (typeof(m.data.theData[state]) == "undefined") return "No data";
+				var htmlString = "";
+				htmlString += "<h4>" + m.data.stateNames[state] + "</h4>";
+				htmlString += "<ul>";
+				for (var dataSet = 0;dataSet<m.data.meta.codes.length;dataSet++) {
+					htmlString += "<li>" + m.data.meta.shortNames[dataSet];
+					htmlString += ": ";
+					htmlString += m.data.theData[state][dataSet];
+					htmlString += "</li>";	
+				}
+				htmlString += "</ul>";
+				return htmlString;
 			},
 			
 			stateObjs: {},

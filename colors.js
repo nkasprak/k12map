@@ -71,4 +71,26 @@
 			m.stateColors[state] = calcColor(scale); 
 		}
 	};
+	
+	m.applyStateColors = function() {
+		function brightness(hexcolor) {
+			var color = m.hexToRGB(hexcolor);
+			return color[0] + color[1] + color[2];
+		};
+		for (state in m.stateColors) {
+			if (m.stateObjs[state]) {
+				m.stateObjs[state].attr("fill",m.stateColors[state]);
+				if (m.stateLabelObjs[state]) {
+					if (brightness(m.stateColors[state]) < 400) {
+						m.stateLabelObjs[state].attr("fill","#ffffff");	
+					} else {
+						m.stateLabelObjs[state].attr("fill","#000000");	
+					}
+				}
+			}
+		}
+	};
+	
+	
+	
 })(k12map);

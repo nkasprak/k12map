@@ -27,4 +27,29 @@ h1.title {
 #map {
 	width:100%;
 	font-family:"myriad-pro-condensed",helvetica,arial,sans-serif;	
+	position:relative;
+}
+
+#map .popup {
+	position:absolute;
+	display:block;
+	background-color:#E1E1E1;
+	font-size:16px;
+	padding:5px;	
+}
+
+#map .popup h4 {
+	margin-top:0px;
+	margin-bottom:0px;	
+}
+
+#map .popup ul {
+	margin-top:0px;
+	margin-bottom:0px;
+	margin-left:0px;
+	padding-left:30px;
+}
+
+#map text {
+	cursor:pointer;	
 }
