@@ -72,14 +72,41 @@
 		}
 	};
 	
-	m.applyStateColors = function() {
+	m.animateStateColor = function(newColors, duration) {
+		var startColors = {};
+		for (state in newColors) {
+			startColors[state] = m.hexToRGB(m.stateObjs[state].attr("fill"));
+		};
+		var tracker = 0;
+		var r = setInterval(function() {
+			if (tracker > duration) {
+				clearInterval(r);
+				return false;
+			}
+			var scale = tracker/duration;
+			$.each(newColors, function(state,color) {
+				rgbColor = m.hexToRGB(color);
+				var frameColor = [0,0,0];
+				for (var i = 0;i<3;i++) {
+					frameColor[i] = Math.round((rgbColor[i] - startColors[state][i])*scale + startColors[state][i]);
+				}
+				m.stateObjs[state].attr("fill",m.RGBToHex(frameColor))
+			});
+			tracker += 10;
+		},10);
+	};
+	
+	m.applyStateColors = function(duration) {
+		if (typeof(duration)=="undefined") duration = 0;
+		if (duration > 0) toAnimate = {};
 		function brightness(hexcolor) {
 			var color = m.hexToRGB(hexcolor);
 			return color[0] + color[1] + color[2];
 		};
 		for (state in m.stateColors) {
 			if (m.stateObjs[state]) {
-				m.stateObjs[state].attr("fill",m.stateColors[state]);
+				if (duration == 0) m.stateObjs[state].attr("fill",m.stateColors[state]);
+				else toAnimate[state] = m.stateColors[state];
 				if (m.stateLabelObjs[state]) {
 					if (brightness(m.stateColors[state]) < 400) {
 						m.stateLabelObjs[state].attr("fill","#ffffff");	
@@ -89,6 +116,7 @@
 				}
 			}
 		}
+		if (duration>0) m.animateStateColor(toAnimate,duration);
 	};
 	
 	

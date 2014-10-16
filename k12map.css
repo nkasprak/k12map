@@ -1,19 +1,40 @@
 @charset "utf-8";
 /* CSS Document */
 
-body, input, select, text {
+body {
 	font-family:"myriad-pro",helvetica,arial,sans-serif;
 	margin:0px;
 	padding:0px;	
 }
 
-h1,h2,h3,h4,h5,h6 {
-	font-family:"myriad-pro-condensed",helvetica,arial,sans-serif;	
+input, select {
+	font-family:"myriad-pro-condensed",helvetica,arial,sans-serif;
 }
+
+h1,h2,h3,h4,h5,h6 {
+	font-family:"myriad-pro-condensed",helvetica,arial,sans-serif;
+	line-height:100%;	
+}
+
+h1 {font-size:21pt}
+h2 {font-size:16pt}
 
 h1.title {
 	margin-top:0px;
+	padding-top:0px;
+	margin-bottom:5px;
+	padding-bottom:5px;	
+}
+
+h2 {
+	margin-top:0px;
 	padding-top:0px;	
+}
+
+
+select#stateLocal {
+	font-size:16pt;
+	font-weight:700;	
 }
 
 #wrapper {
@@ -35,7 +56,8 @@ h1.title {
 	display:block;
 	background-color:#E1E1E1;
 	font-size:16px;
-	padding:5px;	
+	padding:5px;
+	border: 1px solid #aaa;	
 }
 
 #map .popup h4 {

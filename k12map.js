@@ -4,11 +4,15 @@ var k12map = (function() {
 	
 	var m = (function() {
 		
+		var hideDC = true;
 		var initialized = false;
 		var initialWidth;
 		var initialize = function() {
 			
-			function makeState(pathString) {
+			function makeState(state) {
+				var pathString = map_paths[state].path;
+				
+				
 				m.stateObjs[state] = m.paper.path(pathString);
 				m.stateObjs[state].transform(m.transformString);
 				m.stateObjs[state].attr({
@@ -22,13 +26,15 @@ var k12map = (function() {
 					if (m.stateCodes) var state = m.stateCodes[this.id];
 					stateEnter(state);
 				},function(e) {
-					stateLeave();
+					if (m.stateCodes) var state = m.stateCodes[this.id];
+					stateLeave(state);
 				});
 				
 				//store raphael IDs of each state
 				m.stateIDs[state] = m.stateObjs[state].node.raphaelid;
 				//and for reverse lookup
 				m.stateCodes[m.stateObjs[state].node.raphaelid] = state;
+				
 			};
 			
 			function stateEnter(state) {
@@ -43,10 +49,11 @@ var k12map = (function() {
 				}
 			};
 			
-			function stateLeave() {
+			function stateLeave(state) {
 				if (initialized) {
 					clearTimeout(m.fadeTimer);
 					m.fadeTimer = setTimeout(m.fadeoutPopups,100);
+					
 				}
 			}
 			
@@ -66,7 +73,8 @@ var k12map = (function() {
 					var state = $(this[0]).children("tspan").html();
 					stateEnter(state);
 				},function(e) {
-					stateLeave();
+					var state = $(this[0]).children("tspan").html();
+					stateLeave(state);
 				});
 				
 				//store raphael IDs of each label
@@ -77,9 +85,11 @@ var k12map = (function() {
 			m.paper = Raphael(m.mapDivID,m.width,m.height);
 			
 			for (var state in map_paths) {
-				makeState(map_paths[state].path);
-				if (text_configs.hide[state]) {} else {
-					makeText(m.utilities.pathCenter(m.stateObjs[state]));
+				if (!(hideDC == true && state == "DC")) { 
+					makeState(state);
+					if (text_configs.hide[state]) {} else {
+						makeText(m.utilities.pathCenter(m.stateObjs[state]));
+					}
 				}
 			}
 			
@@ -87,7 +97,7 @@ var k12map = (function() {
 			m.applyStateColors();
 		
 			$("#map").on("mouseleave","div.popup",function() {
-				stateLeave();
+				stateLeave("none");
 			});
 			
 			$("#map").on("mouseenter","div.popup",function() {
@@ -103,6 +113,12 @@ var k12map = (function() {
 					}
 				}
 				
+			});
+			
+			$("select#stateLocal").change(function() {
+				var dataIndex = {"state":0,"stateAndLocal":1}[$(this).val()];
+				m.calcStateColors(dataIndex);
+				m.applyStateColors(400);
 			});
 		
 			initialized = true;
@@ -131,6 +147,8 @@ var k12map = (function() {
 			
 			mousePos: {x: 0, y:0},
 			
+			highlightedStates: [],
+			
 			applyNewTransform: function() {
 				var state;
 				for (state in map_paths) {
@@ -157,6 +175,13 @@ var k12map = (function() {
 					$(this).remove();	
 				});
 				m.currentStatePopup = "none";
+				for (var i = 0;i<m.highlightedStates.length;i++) {
+					var toAnimate = {};
+					var state = m.highlightedStates[i];
+					toAnimate[state] = m.stateColors[state];
+					m.animateStateColor(toAnimate,200);
+				};
+				m.highlightedStates = [];
 			},
 						
 			currentStatePopup : "none",
@@ -180,10 +205,26 @@ var k12map = (function() {
 					$("#map").append(popup);
 					popup.fadeIn(200);
 					m.setFadeoutTimer();
+					
+					var toAnimate = {};
+					toAnimate[state] = m.colorConfig.hoverColor;
+					m.animateStateColor(toAnimate,200);
+					m.highlightedStates.push(state);
+					
 				}
 			},
 			
+			
+			
 			popupTemplate: function(state) {
+				
+				function formatter(data) {
+					data = Math.round(data*1000)/10;
+					if (data > 0) data = "+" + data;
+					data = data + "%";
+					return data;
+				}
+				
 				if (typeof(m.data.theData[state]) == "undefined") return "No data";
 				var htmlString = "";
 				htmlString += "<h4>" + m.data.stateNames[state] + "</h4>";
@@ -191,7 +232,7 @@ var k12map = (function() {
 				for (var dataSet = 0;dataSet<m.data.meta.codes.length;dataSet++) {
 					htmlString += "<li>" + m.data.meta.shortNames[dataSet];
 					htmlString += ": ";
-					htmlString += m.data.theData[state][dataSet];
+					htmlString += formatter(m.data.theData[state][dataSet]);
 					htmlString += "</li>";	
 				}
 				htmlString += "</ul>";
