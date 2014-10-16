@@ -117,16 +117,23 @@
 			m.data.meta.dataMax = [];
 			m.data.meta.dataMin = [];
 			var tempArr = [];
+			var allArr = [];
 			var data = m.data.theData;
 			for (var state in data) {
 				for (var i=0;i<data[state].length;i++) {
 					if (typeof(tempArr[i]) == "undefined") tempArr[i] = [];
-					tempArr[i].push(data[state][i]);	
+					tempArr[i].push(data[state][i]);
+					if (m.dataScale=="global") allArr.push(data[state][i]);
 				}
 			}
 			for (i=0;i<tempArr.length;i++) {
-				m.data.meta.dataMax[i] = Math.max.apply(Math,tempArr[i]);
-				m.data.meta.dataMin[i] = Math.min.apply(Math,tempArr[i]); 
+				if (m.dataScale=="global") {
+					m.data.meta.dataMax[i] = Math.max.apply(Math,allArr);
+					m.data.meta.dataMin[i] = Math.min.apply(Math,allArr);
+				} else {
+					m.data.meta.dataMax[i] = Math.max.apply(Math,tempArr[i]);
+					m.data.meta.dataMin[i] = Math.min.apply(Math,tempArr[i]);
+				} 
 			}
 		}
 	};

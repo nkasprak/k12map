@@ -56,6 +56,19 @@
 		
 		spansZero = (dMax > 0 && dMin < 0);
 		
+		m.gradientString = "0-" + m.colorConfig.lowColor + "-";
+		
+		m.middleTextPos = "off";
+		
+		if (spansZero) {
+			var zeroPercent = Math.round((-dMin)/(dMax - dMin)*100);
+			m.gradientString += m.colorConfig.zeroColor + ":" + zeroPercent + "-";
+			m.middleTextPos = zeroPercent;
+		}
+		m.gradientString += m.colorConfig.highColor;
+		
+	
+		
 		for (state in m.data.theData) {
 			dataPoint = m.data.theData[state][dataIndex];
 			
@@ -97,12 +110,26 @@
 	};
 	
 	m.applyStateColors = function(duration) {
+		function formatter(data) {
+			data = Math.round(data*1000)/10;
+			if (data > 0) data = "+" + data;
+			data = data + "%";
+			return data;
+		}
 		if (typeof(duration)=="undefined") duration = 0;
 		if (duration > 0) toAnimate = {};
 		function brightness(hexcolor) {
 			var color = m.hexToRGB(hexcolor);
 			return color[0] + color[1] + color[2];
 		};
+		m.legend.attr({"fill":m.gradientString});	
+		if (m.middleTextPos == "off") {
+			m.legendMiddleText.attr("text","");
+		} else {
+			m.legendMiddleText.attr({"text":"0%","x":Math.round((m.middleTextPos/100)*(m.width*.8)+m.width*.1)});	
+		}
+		m.legendLeftText.attr({"text":formatter(m.data.meta.dataMin[m.activeDataset])});
+		m.legendRightText.attr({"text":formatter(m.data.meta.dataMax[m.activeDataset])});
 		for (state in m.stateColors) {
 			if (m.stateObjs[state]) {
 				if (duration == 0) m.stateObjs[state].attr("fill",m.stateColors[state]);

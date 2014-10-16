@@ -93,9 +93,31 @@ var k12map = (function() {
 				}
 			}
 			
+			
+			
 			m.calcStateColors(0);
+			
+			var makeLegend = function() {
+				m.legend = m.paper.rect(m.width*.1,m.height*.9,m.width*.8,m.height*.035);
+				m.legend.attr({"stroke":"#aaa","stroke-width":0.8});
+				m.legendLeftText = m.paper.text(m.width*.1,m.height*.96,"");
+				m.legendRightText = m.paper.text(m.width*.9,m.height*.96,"");
+				m.legendMiddleText = m.paper.text(m.width*.5,m.height*.96,"0%");
+				
+				
+				var attrs = {
+					"font-size":18,
+					"font-family":$("#" + m.mapDivID).css("font-family")
+				};
+				m.legendLeftText.attr(attrs);
+				m.legendRightText.attr(attrs);
+				m.legendMiddleText.attr(attrs);
+				
+			}
+			makeLegend();
+			
 			m.applyStateColors();
-		
+			
 			$("#map").on("mouseleave","div.popup",function() {
 				stateLeave("none");
 			});
@@ -117,6 +139,7 @@ var k12map = (function() {
 			
 			$("select#stateLocal").change(function() {
 				var dataIndex = {"state":0,"stateAndLocal":1}[$(this).val()];
+				m.activeDataset = dataIndex;
 				m.calcStateColors(dataIndex);
 				m.applyStateColors(400);
 			});
@@ -142,19 +165,29 @@ var k12map = (function() {
 				m.transformString = "s" + m.path_scale + "," + m.path_scale + ",0,0";
 				m.textTransformString = "s" + m.text_scale + "," + m.text_scale + ",0,0";
 				
+				
+				
 				if (initialized == true) m.applyNewTransform();
 			},
 			
 			mousePos: {x: 0, y:0},
+			
+			dataScale : "global", //set to "local" to rescale when switching data
+			
+			activeDataset: 0,
 			
 			highlightedStates: [],
 			
 			applyNewTransform: function() {
 				var state;
 				for (state in map_paths) {
-					m.stateObjs[state].transform(m.transformString);
+					if (m.stateObjs[state]) m.stateObjs[state].transform(m.transformString);
 					if (m.stateLabelObjs[state]) m.stateLabelObjs[state].transform(m.textTransformString);
 				}
+				m.legend.attr({"x":m.width*.1,"y":m.height*.9,width:m.width*.8,height:m.height*0.035});
+				m.legendLeftText.transform(m.textTransformString);
+				m.legendRightText.transform(m.textTransformString);
+				m.legendMiddleText.transform(m.textTransformString);
 			},
 			
 			pageLoadFunction : function() {
