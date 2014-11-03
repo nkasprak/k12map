@@ -2,7 +2,16 @@
 <html>
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
 <title>K12 Map</title>
+<script>
+var is_legacy_ie = false;
+</script>
+<!--[if lte IE 8]>
+<script>
+is_legacy_ie = true;
+</script>
+<![endif]-->
 <link rel="stylesheet" type="text/css" href="k12map.css" />
 <script src="//use.typekit.net/peo1mmt.js"></script>
 <script type ="text/javascript" src="fontloader.js"></script>
@@ -10,11 +19,28 @@
 
 <body>
 <div id="wrapper">
-    <h1 class="title">In 35 States, Total State and Local Funding for K-12 Schools 
-Per Student Declined From 2008 to 2012</h1>
-    <h2>Percent change in <select id="stateLocal"><option value="state">state-only</option><option value="stateAndLocal">state-local</option></select> spending per student, inflation-adjusted, FY08-FY12</h2>
+    <h1 class="title">Snazzy Map Title</h1>
+    <h2><select id="dollarPercent"><option value="dollar">Dollar</option><option value="percent">Percent</option></select> Change in Real Per Student Spending Relative to Fiscal Year 2008</h2>
     
     <div id="map"></div>
+    <div id="notes">
+    <p>Note: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam id dictum nisi, at pulvinar sapien. Sed placerat odio
+      ipsum, sit amet lobortis risus fermentum condimentum. Donec ac tempor elit. Fusce lobortis lacus at fringilla malesuada. Nulla
+      facilisi. Donec metus libero, consectetur a ultricies at, ullamcorper in tellus</p>
+    <p> Source: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam id dictum nisi, at pulvinar sapien. Sed placerat odio
+      ipsum, sit amet lobortis risus fermentum condimentum. Donec ac tempor elit. Fusce lobortis lacus at fringilla malesuada. Nulla
+      facilisi. Donec metus libero, consectetur a ultricies at, ullamcorper in tellus</p>
+  </div>
+    <div class="credits">
+    <div class="embedCode">
+      <p><strong>Embed code:</strong> <span class="embedLink">(Close)</span></p>
+      <div class="embedCodeArea">&lt;iframe src=&quot;<span class="embedDomain"></span>&quot; frameborder=&quot;0&quot; width=&quot;525&quot; height=&quot;1260&quot; scrolling=&quot;no&quot; &gt;&lt;/iframe&gt;</div>
+    </div>
+    
+    <p class="embedLink">Embed this graphic on your own site </p>
+    <p>CBPP data visualization by <a href="http://www.cbpp.org/about/index.cfm?fa=view&id=234" target="_blank">Nick Kasprak</a>, <a href="http://www.cbpp.org/experts/?fa=view&id=161" target="_blank">Michael Leachman</a>, <a href="http://www.cbpp.org/experts/?fa=view&id=219" target="_blank">Vincent Palacios</a>, and <a href="http://www.cbpp.org/about/index.cfm?fa=view&id=229" target="_blank">Rob Cady</a></p>
+    <div id="cbppCredit">Center on Budget and Policy Priorities | <a href="http://www.cbpp.org" target="_blank">cbpp.org</a></div>
+  </div>
 
 </div>
 

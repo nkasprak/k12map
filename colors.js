@@ -6,7 +6,8 @@
 		highColor : "#0081a4",
 		zeroColor : "#ffffff",
 		lowColor  : "#b9292f",
-		hoverColor:	"#f8c55b"
+		hoverColor:	"#f8c55b",
+		noDataColor : "#aaaaaa"
 	};
 	
 	m.hexToRGB = function (hexString) {
@@ -68,26 +69,28 @@
 		m.gradientString += m.colorConfig.highColor;
 		
 	
-		
-		for (state in m.data.theData) {
-			dataPoint = m.data.theData[state][dataIndex];
-			
-			if (spansZero) {
-				//Data has positive and negative values - use a zero color
-				if (dataPoint < 0) scale = 0-(dataPoint - dMin)/(0 - dMin);
-				else scale = (dataPoint - 0)/(dMax - 0);
+		for (state in m.stateObjs) {
+			if (m.data.theData[state]) {
+				dataPoint = m.data.theData[state][dataIndex];
+				if (spansZero) {
+					//Data has positive and negative values - use a zero color
+					if (dataPoint < 0) scale = 0-(dataPoint - dMin)/(0 - dMin);
+					else scale = (dataPoint - 0)/(dMax - 0);
+				} else {
+					//Data is entirely positive or negative - don't use special zero color
+					scale = (dataPoint - dMin)/(dMax - dMin); 
+				}
+				
+				m.stateColors[state] = calcColor(scale); 
 			} else {
-				//Data is entirely positive or negative - don't use special zero color
-				scale = (dataPoint - dMin)/(dMax - dMin); 
+				m.stateColors[state] = m.colorConfig.noDataColor;	
 			}
-			
-			m.stateColors[state] = calcColor(scale); 
 		}
 	};
 	
 	m.animateStateColor = function(newColors, duration) {
 		var startColors = {};
-		for (state in newColors) {
+		for (var state in newColors) {
 			startColors[state] = m.hexToRGB(m.stateObjs[state].attr("fill"));
 		};
 		var tracker = 0;
@@ -110,12 +113,7 @@
 	};
 	
 	m.applyStateColors = function(duration) {
-		function formatter(data) {
-			data = Math.round(data*1000)/10;
-			if (data > 0) data = "+" + data;
-			data = data + "%";
-			return data;
-		}
+		var formatter = m.data.formatters[m.activeDataset];
 		if (typeof(duration)=="undefined") duration = 0;
 		if (duration > 0) toAnimate = {};
 		function brightness(hexcolor) {
@@ -130,8 +128,8 @@
 		}
 		m.legendLeftText.attr({"text":formatter(m.data.meta.dataMin[m.activeDataset])});
 		m.legendRightText.attr({"text":formatter(m.data.meta.dataMax[m.activeDataset])});
-		for (state in m.stateColors) {
-			if (m.stateObjs[state]) {
+		for (var state in m.stateObjs) {
+			if (m.stateColors[state]) {
 				if (duration == 0) m.stateObjs[state].attr("fill",m.stateColors[state]);
 				else toAnimate[state] = m.stateColors[state];
 				if (m.stateLabelObjs[state]) {
@@ -142,6 +140,7 @@
 					}
 				}
 			}
+			
 		}
 		if (duration>0) m.animateStateColor(toAnimate,duration);
 	};

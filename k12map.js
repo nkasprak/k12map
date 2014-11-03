@@ -8,6 +8,17 @@ var k12map = (function() {
 		var initialized = false;
 		var initialWidth;
 		var initialize = function() {
+			var touchscreen = false;
+			$("#map").on("touchstart", function() {
+				touchscreen = true;	
+			});
+			if (is_legacy_ie == true) {
+				$("#wrapper").prepend("<div class=\"ie8warn\"><strong>Note:</strong> You are using an old, unsupported version of Internet Explorer. Some elements of this graphic will not display correctly. &nbsp;<button id=\"ie8Okay\">OK</button></div>");	
+			}
+			
+			$("#ie8Okay").click(function() {
+				$(".ie8warn").slideUp(400);
+			});
 			
 			function makeState(state) {
 				var pathString = map_paths[state].path;
@@ -23,11 +34,23 @@ var k12map = (function() {
 				
 				
 				m.stateObjs[state].hover(function(e) {
-					if (m.stateCodes) var state = m.stateCodes[this.id];
-					stateEnter(state);
+					if (!touchscreen) {
+						if (m.stateCodes) var state = m.stateCodes[this.id];
+						stateEnter(state);
+					}
 				},function(e) {
-					if (m.stateCodes) var state = m.stateCodes[this.id];
-					stateLeave(state);
+					if (!touchscreen) {
+						if (m.stateCodes) var state = m.stateCodes[this.id];
+						stateLeave(state);
+					}
+				});
+				
+				m.stateObjs[state].touchstart(function(e) {
+					touchscreen = true;
+				
+					m.mousePos.x = m.stateLabelObjs[state].attrs.x;
+					m.mousePos.y = m.stateLabelObjs[state].attrs.y;
+					m.popupState(state);
 				});
 				
 				//store raphael IDs of each state
@@ -57,41 +80,72 @@ var k12map = (function() {
 				}
 			}
 			
-			function makeText(coords) {
-				if (text_configs.offset[state]) {
-					coords[0] += text_configs.offset[state][0];
-					coords[1] += text_configs.offset[state][1];
-				}
 			
-				m.stateLabelObjs[state] = m.paper.text(coords[0],coords[1],state);
-				m.stateLabelObjs[state].attr({
-					"font-size":18,
-					"font-family":$("#" + m.mapDivID).css("font-family")
-				});
-				
-				m.stateLabelObjs[state].hover(function(e) {
-					var state = $(this[0]).children("tspan").html();
-					stateEnter(state);
-				},function(e) {
-					var state = $(this[0]).children("tspan").html();
-					stateLeave(state);
-				});
-				
-				//store raphael IDs of each label
-				m.stateTextIDs[state] = m.stateLabelObjs[state].node.raphaelid;
-				
-			}
 			
 			m.paper = Raphael(m.mapDivID,m.width,m.height);
 			
-			for (var state in map_paths) {
+			$.each(map_paths,function(state,path) {
+			//for (var state in map_paths) {
+				
+				function makeText(coords) {
+					if (text_configs.offset[state]) {
+						coords[0] += text_configs.offset[state][0];
+						coords[1] += text_configs.offset[state][1];
+					}
+					if (text_configs.absOffset[state]) {
+						coords[0] = text_configs.absOffset[state][0];
+						coords[1] = text_configs.absOffset[state][1];
+					}
+				
+					m.stateLabelObjs[state] = m.paper.text(coords[0],coords[1],state);
+					m.stateLabelObjs[state].attr({
+						"font-size":18,
+						"font-family":$("#" + m.mapDivID).css("font-family")
+					});
+					
+					m.stateLabelObjs[state].hover(function(e) {
+						var state = m.stateByRaphaelTextID[this.node.raphaelid];
+						stateEnter(state);
+					},function(e) {
+						var state = m.stateByRaphaelTextID[this.node.raphaelid];
+						stateLeave(state);
+					});
+					
+					m.stateLabelObjs[state].touchstart(function(e) {
+						
+						var state = m.stateByRaphaelTextID[this.node.raphaelid];
+						touchscreen = true;
+						m.mousePos.x = m.stateLabelObjs[state].attrs.x;
+						m.mousePos.y = m.stateLabelObjs[state].attrs.y;
+						m.popupState(state);
+					});
+					
+					//store raphael IDs of each label
+					m.stateTextIDs[state] = m.stateLabelObjs[state].node.raphaelid;
+					m.stateByRaphaelTextID[m.stateLabelObjs[state].node.raphaelid] = state;
+					
+				}
+				
 				if (!(hideDC == true && state == "DC")) { 
 					makeState(state);
 					if (text_configs.hide[state]) {} else {
 						makeText(m.utilities.pathCenter(m.stateObjs[state]));
 					}
 				}
+			});
+			
+			function makeLines() {
+				function makeLine(lineNumber) {
+					var line = map_lines[lineNumber];
+					m.maplines[lineNumber] = m.paper.path(["M",line[0],line[1], "L", line[2],line[3]]);
+					m.maplines[lineNumber].attr({"stroke-width":0.5,"fill":"#888888"});
+				}	
+				m.maplines = [];
+				for (var i = 0;i<map_lines.length;i++) {
+					makeLine(i);
+				}
 			}
+			makeLines();
 			
 			
 			
@@ -119,29 +173,45 @@ var k12map = (function() {
 			m.applyStateColors();
 			
 			$("#map").on("mouseleave","div.popup",function() {
-				stateLeave("none");
+				if (!touchscreen) stateLeave("none");
 			});
 			
 			$("#map").on("mouseenter","div.popup",function() {
-				clearTimeout(m.fadeTimer);
+				if (!touchscreen) clearTimeout(m.fadeTimer);
 			});
 			
 			$("#map").on("mousemove",function(e) {
-				
-				if (initialized) {
-					if ($(e.target).prop("tagName") == "path") {
-						m.mousePos.x = e.offsetX;
-						m.mousePos.y = e.offsetY;
+				if (!touchscreen) {
+					var tag;
+					if (initialized) {
+						tag = $(e.target).prop("tagName");
+						if (tag == "path" || tag == "shape" || tag == "tspan") {
+							m.mousePos.x = e.pageX - $("#map").offset().left;
+							m.mousePos.y = e.pageY - $("#map").offset().top;
+						}
 					}
 				}
 				
 			});
 			
-			$("select#stateLocal").change(function() {
-				var dataIndex = {"state":0,"stateAndLocal":1}[$(this).val()];
+			$("select#dollarPercent").change(function() {
+				var dataIndex = {"dollar":0,"percent":1}[$(this).val()];
 				m.activeDataset = dataIndex;
 				m.calcStateColors(dataIndex);
 				m.applyStateColors(400);
+			});
+			
+			$("span.embedDomain").html(document.URL);
+			$(".embedLink").click(function() {
+				if ($("div.embedCode").is(":visible")) {
+					$("div.embedCode").fadeOut(200);
+				} else {
+					$("div.embedCode").fadeIn(200);	
+				}
+			});
+			
+			$("#wrapper").on("touchstart","div.popup",function(e) {
+				m.fadeoutPopups();
 			});
 		
 			initialized = true;
@@ -172,7 +242,7 @@ var k12map = (function() {
 			
 			mousePos: {x: 0, y:0},
 			
-			dataScale : "global", //set to "local" to rescale when switching data
+			dataScale : "local", //set to "local" to rescale when switching data
 			
 			activeDataset: 0,
 			
@@ -222,18 +292,19 @@ var k12map = (function() {
 			popupState: function(state) {
 				if (state != "none") {
 					var coords = [m.mousePos.x,m.mousePos.y];
+					
 					var popup = $("<div class=\"popup\" style=\"display:none\">");
 					m.fadeoutPopups();
 					popup.html(m.popupTemplate(state));
 					if (coords[1] < m.height/2) {
-						popup.css("top",coords[1]);
+						popup.css("top",coords[1] + 2);
 					} else {
-						popup.css("bottom",m.height - coords[1]);
+						popup.css("bottom",m.height - coords[1] + 2);
 					}
 					if (coords[0] < m.width/2) {
-						popup.css("left",coords[0]);
+						popup.css("left",coords[0] + 2);
 					} else {
-						popup.css("right",m.width - coords[0]);
+						popup.css("right",m.width - coords[0] + 2);
 					}
 					$("#map").append(popup);
 					popup.fadeIn(200);
@@ -251,18 +322,14 @@ var k12map = (function() {
 			
 			popupTemplate: function(state) {
 				
-				function formatter(data) {
-					data = Math.round(data*1000)/10;
-					if (data > 0) data = "+" + data;
-					data = data + "%";
-					return data;
-				}
+				var formatter;
 				
 				if (typeof(m.data.theData[state]) == "undefined") return "No data";
 				var htmlString = "";
 				htmlString += "<h4>" + m.data.stateNames[state] + "</h4>";
 				htmlString += "<ul>";
 				for (var dataSet = 0;dataSet<m.data.meta.codes.length;dataSet++) {
+					formatter = m.data.formatters[dataSet];
 					htmlString += "<li>" + m.data.meta.shortNames[dataSet];
 					htmlString += ": ";
 					htmlString += formatter(m.data.theData[state][dataSet]);
@@ -282,7 +349,15 @@ var k12map = (function() {
 			
 			stateCodes: {},
 			
+			stateByRaphaelTextID: {},
+			
 			utilities: {
+				commaSeparateNumber: function(val){
+					while (/(\d+)(\d{3})/.test(val.toString())){
+				  		val = val.toString().replace(/(\d+)(\d{3})/, '$1'+','+'$2');
+					}
+					return val;
+				},
 				pathCenter: function(p) {
 					var box,x,y 
 					box = p.getBBox(); 
