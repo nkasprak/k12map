@@ -149,6 +149,8 @@
 				if (val < 0) {
 					val = Math.abs(val);
 					returnString += "-";	
+				} else {
+					returnString += "+";	
 				}
 				returnString += "$";
 				returnString += m.utilities.commaSeparateNumber(val);

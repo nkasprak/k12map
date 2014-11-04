@@ -8,6 +8,7 @@ var k12map = (function() {
 		var initialized = false;
 		var initialWidth;
 		var initialize = function() {
+			
 			var touchscreen = false;
 			$("#map").on("touchstart", function() {
 				touchscreen = true;	
@@ -213,7 +214,7 @@ var k12map = (function() {
 			$("#wrapper").on("touchstart","div.popup",function(e) {
 				m.fadeoutPopups();
 			});
-		
+			$("#wrapper").css("visibility","visible");
 			initialized = true;
 		}
 		
